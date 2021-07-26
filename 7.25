@@ -1,0 +1,40 @@
+use std::net::{TcpListener, TcpStream}; #使用包
+use std::thread; #创建线程
+use std::time;#时间包
+use std::io::{Error, Read, Write};#处理错误
+
+fn handle_client(mut stream: TcpStream) -> Result<(), Error>{#处理返回
+    let mut buf = [0; 512];#对应的处理函数创建buf长度
+    for _ in 0..100000 {#循环很多次等待客户端请求
+        let bytes_read = stream.read(&mut buf)?;#读取内容
+        if bytes_read == 0 {#结束
+            return Ok(());#回到ok
+        }
+
+        stream.write(&buf[..bytes_read])?;#写回去
+        thread::sleep(time::Duration::from_secs(1 as u64));#睡眠1s
+    }
+
+    Ok(())
+}
+
+fn main() -> std::io::Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:8080")?;#创建listener和监听端口
+    let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();#放线程返回容器
+
+    for stream in listener.incoming() {#内容
+        let stream = stream.expect("failed!");#有问题打一个failed
+        let handle = thread::spawn(move || {#没有问题继续处理
+            handle_client(stream)
+        .unwrap_or_else(|error| eprintln!("{:?}", error));#返回的是result类型用unwrapelse处理打印error
+        });
+
+        thread_vec.push(handle);#容器
+    }
+
+    for handle in thread_vec {#等待线程结束
+        handle.join().unwrap();
+    }
+
+    Ok(())
+}
