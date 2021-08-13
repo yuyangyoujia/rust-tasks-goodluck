@@ -1,0 +1,8 @@
+frame_support::pallet 定义功能
+pallet::config 定义配置单元
+pallet::storage 存储单元
+
+
+StorageValue 单值
+StorageMap 映射
+StorageDoubleMap 双键映射
